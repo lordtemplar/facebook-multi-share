@@ -1,19 +1,11 @@
 import streamlit as st
 import requests
-import json
 
 # Facebook Graph API URL
 FB_GRAPH_API = "https://graph.facebook.com/v17.0"
 
-# Load fanpage access tokens from the JSON file
-def load_fanpages():
-    try:
-        with open("fanpages.json", "r") as f:
-            data = json.load(f)
-            return data["fanpages"]
-    except Exception as e:
-        st.error(f"Error loading fanpages.json: {e}")
-        return []
+# Load fanpage access tokens from Streamlit secrets
+page_access_tokens = st.secrets["facebook"]["page_access_tokens"]
 
 # Streamlit App
 st.title("Facebook Post Sharer")
@@ -24,14 +16,11 @@ post_message = st.text_area("Post Message", "Write your Facebook post here...")
 image_url = st.text_input("Image URL (optional)", "")
 submit_button = st.button("Share Post")
 
-# Load fanpages
-page_access_tokens = load_fanpages()
-
 if submit_button:
     if not post_message:
         st.error("Post message cannot be empty!")
     elif not page_access_tokens:
-        st.error("No fan pages found! Please check fanpages.json.")
+        st.error("No fan pages found! Please add your tokens in Streamlit Cloud Secrets.")
     else:
         # Function to post to a Facebook page
         def post_to_page(page_id, access_token, message, image_url=""):
@@ -72,16 +61,15 @@ if submit_button:
 if st.checkbox("Show Setup Instructions"):
     st.markdown("""
     ### Setup Instructions
-    1. Create a file called `fanpages.json` in your project directory.
-    2. Add your page access tokens in the following format:
-       ```json
-       {
-           "fanpages": [
-               "page_access_token_1",
-               "page_access_token_2",
-               "... up to 25 tokens ..."
-           ]
-       }
+    1. Go to Streamlit Cloud → App Settings → Secrets.
+    2. Add the following to your secrets:
+       ```toml
+       [facebook]
+       page_access_tokens = [
+           "page_access_token_1",
+           "page_access_token_2",
+           "... up to 25 tokens ..."
+       ]
        ```
-    3. Deploy your app, and ensure the `fanpages.json` file is included in your project.
+    3. Redeploy your app to apply the changes.
     """)
